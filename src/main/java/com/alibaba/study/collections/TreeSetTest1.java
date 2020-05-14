@@ -10,16 +10,25 @@ import java.util.TreeSet;
  */
 public class TreeSetTest1 implements Comparator<String> {
 
+    /**
+     * 按照字符串的长度比较
+     *
+     * @param s1
+     * @param s2
+     * @return
+     */
     @Override
-    public int compare(String s1, String s2) {        //按照字符串的长度比较
-        int num = s1.length() - s2.length();        //长度为主要条件
-        return num == 0 ? s1.compareTo(s2) : num;    //内容为次要条件
+    public int compare(String s1, String s2) {
+        //长度为主要条件
+        int num = s1.length() - s2.length();
+        //内容为次要条件
+        return num == 0 ? s1.compareTo(s2) : num;
     }
 
     public static void demoTwo() {
 
         //需求:将字符串按照长度排序
-        TreeSet<String> ts = new TreeSet<>(new TreeSetTest1());        //Comparator c = new CompareByLen();
+        TreeSet<String> ts = new TreeSet<>(new TreeSetTest1());
         ts.add("aaaaaaaa");
         ts.add("z");
         ts.add("wc");

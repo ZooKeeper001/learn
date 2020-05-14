@@ -23,6 +23,10 @@ public class Person implements Comparator<Person> {
     public Person() {
     }
 
+    public Person(Integer age ,String name) {
+        this.age = age;
+        this.name = name;
+    }
     @Override
     public int compare(Person o1,Person o2) {
         int num = o1.getAge() - o2.getAge();
