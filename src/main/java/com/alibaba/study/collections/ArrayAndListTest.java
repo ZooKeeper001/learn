@@ -24,11 +24,11 @@ public class ArrayAndListTest {
         );
 */
         // 集合转数组
-      /*  Person[] a = new Person[people.size()] ;
+        Person[] a = new Person[people.size()] ;
         people.toArray(a);
         for (int i = 0;i<a.length;i++) {
             System.out.println(a[i]);
-        }*/
+        }
 
         Set<Person> set = new HashSet<>();
         set.add(p1);
