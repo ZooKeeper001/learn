@@ -1,16 +1,8 @@
 package com.alibaba.study.collections;
 
-
-
 import com.alibaba.study.util.ExcelUtil;
-import jxl.Cell;
-import jxl.Sheet;
-import jxl.Workbook;
-import jxl.read.biff.BiffException;
-
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * 读取 Excel 数据
@@ -22,7 +14,7 @@ public class ReadExcelTest {
 
     public static void main(String[] args) {
 
-        List<String> read = ExcelUtil.read("D:\\aa.xls");
+        /*List<String> read = ExcelUtil.read("D:\\aa.xls");
 
         System.out.println(read);
         System.out.println(read.size());
@@ -37,6 +29,8 @@ public class ReadExcelTest {
         for (int i = 0 ;i < split.length ;i++) {
             System.out.println(split[i]);
 
-        }
+        }*/
+        UUID.randomUUID().toString();
+        System.out.println(UUID.randomUUID().toString());
     }
 }

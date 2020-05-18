@@ -70,7 +70,7 @@ public class ExcelUtil {
      * @throws ClassNotFoundException
      */
     public static void write (File file,List list,String classPath) throws IOException, WriteException, ClassNotFoundException {
-        StringBuffer sb = new StringBuffer();
+
         // 创建用于写入内容的Excel文件的引用
         WritableWorkbook wb = null;
         Class clazz = Class.forName(classPath);

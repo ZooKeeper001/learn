@@ -29,7 +29,7 @@ public class FilesTest {
         // 验证文件路径是否存在
         System.out.println(Files.exists(path1));
         // 创建文件
-        //Files.createFile(path2);
+        Files.createFile(path2);
         // 创建文件夹
         //Files.createDirectories(path3);
         // 删除一个文件或者目录
@@ -43,7 +43,7 @@ public class FilesTest {
         //test1();
         //test2();
         //test3 ();
-        test4();
+       /* test4();
         Set<UserInput> set = new TreeSet<>();
         UserInput input = new UserInput();
         UserInput input1 = new UserInput();
@@ -56,7 +56,7 @@ public class FilesTest {
         set.add(input1);
         set.forEach(
                 t -> System.out.println(t.toString())
-        );
+        );*/
 
 
     }
