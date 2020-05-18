@@ -20,9 +20,23 @@ import java.util.List;
  */
 public class ReadExcelTest {
 
-    public static void main(String[] args) throws IOException, BiffException {
-        List<List<String>> read = ExcelUtil.read("D:\\aa.xls");
+    public static void main(String[] args) {
+
+        List<String> read = ExcelUtil.read("D:\\aa.xls");
 
         System.out.println(read);
+        System.out.println(read.size());
+        read.forEach(
+                t -> System.out.println(t)
+        );
+
+        String a = "kelala:18:";
+        String re = ":";
+        String[] split = a.split(re);
+        System.out.println(split.length);
+        for (int i = 0 ;i < split.length ;i++) {
+            System.out.println(split[i]);
+
+        }
     }
 }

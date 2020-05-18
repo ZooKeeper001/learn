@@ -30,8 +30,8 @@ public class ExcelUtil {
      * @param path excel文件所在路径
      * @return list excel对应数据行的字符串集合
      */
-    public static List<List<String>>  read (String path) {
-        List<List<String>> all = new ArrayList<>();
+    public static List<String>  read (String path) {
+
         List<String> list = new ArrayList<>();
         try {
             // 创建文件对象
@@ -40,26 +40,31 @@ public class ExcelUtil {
             Workbook wb = Workbook.getWorkbook(file);
             // 从工作区中取得页（Sheet）
             Sheet sheet = wb.getSheet(0);
+            System.out.println(sheet.getRows());
+            System.out.println(sheet.getColumns());
             // 循环打印Excel表中的内容
+
             for (int i = 1; i < sheet.getRows(); i++) {
+                StringBuilder builder = new StringBuilder();
                 for (int j = 0; j < sheet.getColumns(); j++) {
                     Cell cell = sheet.getCell(j, i);
-                    list.add(cell.getContents()+" ");
+                    String str = cell.getContents();
+                    builder.append(str + ":");
                 }
-
+                list.add(builder.toString());
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return all;
+        return list;
     }
 
     /**
      * 指定路径excel文件写入数据
      *
-     * @param file
-     * @param list
-     * @param classPath
+     * @param file 写入的文件
+     * @param list 写入文件内的数据集合
+     * @param classPath 类型的class的路径
      * @throws IOException
      * @throws WriteException
      * @throws ClassNotFoundException
