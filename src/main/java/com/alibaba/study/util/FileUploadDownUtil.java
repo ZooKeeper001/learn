@@ -1,17 +1,17 @@
 package com.alibaba.study.util;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import org.apache.commons.io.FileUtils;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.util.UUID;
 
 /**
  * 文件上传下载工具类
@@ -20,93 +20,185 @@ import org.springframework.http.ResponseEntity;
  * @version 1.0
  * @date 2020/5/18 15:14
  */
+@Component
+@Slf4j
 public class FileUploadDownUtil {
 
     /**
-     * 根据路径确定目录，没有目录，则创建目录
+     * 上传文件
      *
-     * @param path
-     */
-    private static void createDir(String path) {
-        File fileDir = new File(path);
-        // 判断/download目录是否存在
-        if (!fileDir.exists() && !fileDir.isDirectory()) {
-            // 创建目录
-            fileDir.mkdir();
-        }
-    }
-    /**
-     * 将文件名解析成文件的上传路径
-     *
+     * @param file
+     * @param filePath
      * @param fileName
-     * @return 上传到服务器的文件名
+     * @throws Exception
      */
-    public static String transPath(String fileName, String path) {
-        createDir(path);
-        Date date = new Date();
-        // 定义到毫秒
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddhhmmssSSS");
-        String nowStr = dateFormat.format(date);
-        // 去掉后缀的文件名
-        String filenameStr = fileName.substring(0, fileName.lastIndexOf("."));
-        String suffix = fileName.substring(fileName.lastIndexOf(".") + 1);
-        // 如果名称不为"",说明该文件存在，否则说明该文件不存在
-        if (fileName.trim() != "") {
-            // 定义上传路径
-            path += "\\" + filenameStr + nowStr + "." + suffix;
+    public static void uploadFile(byte[] file, String filePath, String fileName) throws Exception {
+        File targetFile = new File(filePath);
+        if (!targetFile.exists()) {
+            targetFile.mkdirs();
         }
-        return path;
-    }
-    /**
-     * 提醒文件下载
-     *
-     * @param fileName
-     * @param path
-     * @return
-     */
-    public static ResponseEntity<byte[]> downloadFile(String fileName, String path) {
-        try {
-            // 避免文件名中文不显示
-            fileName = new String(fileName.getBytes("GB2312"), "ISO_8859_1");
-        } catch (UnsupportedEncodingException e1) {
-            e1.printStackTrace();
-        }
-        File file = new File(path);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        headers.setContentDispositionFormData("attachment", fileName);
-        ResponseEntity<byte[]> byteArr = null;
-        try {
-            byteArr = new ResponseEntity<byte[]>(FileUtils.readFileToByteArray(file), headers, HttpStatus.OK);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return byteArr;
-    }
-    /**
-     * 将输入流中的数据写入字节数组
-     *
-     * @param in
-     * @return
-     */
-    public static byte[] inputStream2ByteArray(InputStream in, boolean isClose) {
-        byte[] byteArray = null;
-        try {
-            int total = in.available();
-            byteArray = new byte[total];
-            in.read(byteArray);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (isClose) {
-                try {
-                    in.close();
-                } catch (Exception e2) {
-                    System.out.println("关闭流失败");
-                }
-            }
-        }
-        return byteArray;
+        FileOutputStream out = new FileOutputStream(filePath + fileName);
+        out.write(file);
+        out.flush();
+        out.close();
     }
 
+    /**
+     * 判断文件是否存在
+     *
+     * @param filePath
+     * @throws Exception
+     */
+    public static boolean exists(String filePath) {
+        File targetFile = new File(filePath);
+        return targetFile.exists();
+    }
+
+    /**
+     * 删除文件
+     *
+     * @param fileName
+     * @return
+     */
+    public static boolean deleteFile(String fileName) {
+        File file = new File(fileName);
+        // 如果文件路径所对应的文件存在，并且是一个文件，则直接删除
+        if (file.exists() && file.isFile()) {
+            if (file.delete()) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public static String renameToUUID(String fileName) {
+        return UUID.randomUUID() + "." + fileName.substring(fileName.lastIndexOf(".") + 1);
+    }
+
+    public static void download(HttpServletResponse res, String path, String fileName) {
+        downloadLocal(res, path, fileName);
+    }
+
+    /**
+     * 下载本地文件
+     * @param response
+     * @param path
+     * @param fileName
+     */
+    public static void downloadLocal(HttpServletResponse response, String path, String fileName) {
+        FileInputStream fileIn = null;
+        ServletOutputStream out = null;
+        try {
+            // String fileName = new String(fileNameString.getBytes("ISO8859-1"), "UTF-8");
+            response.setContentType("application/octet-stream");
+            // URLEncoder.encode(fileNameString, "UTF-8") 下载文件名为中文的，文件名需要经过url编码
+            response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, "UTF-8"));
+            File file;
+            String filePathString = path + fileName;
+            file = new File(filePathString);
+            fileIn = new FileInputStream(file);
+            out = response.getOutputStream();
+
+            byte[] outputByte = new byte[1024];
+            int readTmp = 0;
+            while ((readTmp = fileIn.read(outputByte)) != -1) {
+                //并不是每次都能读到1024个字节，所有用readTmp作为每次读取数据的长度，否则会出现文件损坏的错误
+                out.write(outputByte, 0, readTmp);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                fileIn.close();
+                out.flush();
+                out.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+    /**
+     * 下载网络文件
+     * @param fileUrl
+     * @param fileLocal
+     * @return
+     * @throws Exception
+     */
+    public static boolean downloadNet(String fileUrl, String fileLocal) throws Exception {
+        boolean flag = false;
+        URL url = new URL(fileUrl);
+        HttpURLConnection urlCon = (HttpURLConnection) url.openConnection();
+        urlCon.setConnectTimeout(6000);
+        urlCon.setReadTimeout(6000);
+        int code = urlCon.getResponseCode();
+        if (code != HttpURLConnection.HTTP_OK) {
+            throw new Exception("文件读取失败");
+        }
+        //读文件流
+        DataInputStream in = new DataInputStream(urlCon.getInputStream());
+        DataOutputStream out = new DataOutputStream(new FileOutputStream(fileLocal));
+        byte[] buffer = new byte[2048];
+        int count = 0;
+        while ((count = in.read(buffer)) > 0) {
+            out.write(buffer, 0, count);
+        }
+        try {
+            if (out != null) {
+                out.close();
+            }
+            if (in != null) {
+                in.close();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        flag = true;
+        return flag;
+    }
+
+    public static byte[] getFileStream(String fileUrl,
+                                        HttpServletRequest request) {
+
+        ServletContext application = request.getSession().getServletContext();
+        String url = application.getRealPath("/")+fileUrl;
+        byte[] buffer = null;
+        File file = new File(url);
+        FileInputStream fis;
+        try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            fis = new FileInputStream(file);
+            byte[] b = new byte[1024];
+            int n;
+            while ((n = fis.read(b)) != -1) {
+                bos.write(b, 0, n);
+            }
+            fis.close();
+            bos.close();
+            buffer = bos.toByteArray();
+            if(file.exists()) {
+                file.delete();
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }catch (IOException e) {
+            e.printStackTrace();
+        }
+        return buffer;
+    }
+
+    public static void main(String[] args) {
+        HttpServletRequest request = null;
+        byte[] fileStream = FileUploadDownUtil.getFileStream("temp/abc,txt", request);
+        try {
+            FileUploadDownUtil.uploadFile(fileStream,"","");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
