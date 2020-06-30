@@ -1,5 +1,8 @@
 package com.alibaba.study.arcgis;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+
 /**
  * @author Shawn (Shawn_0108@163.com)
  * @version 1.0
@@ -48,9 +51,20 @@ public class QueryAction {
      * @param args
      */
     public static void main(String[] args) {
-        // TODO Auto-generated method stub
-        QueryAction queryAction = new QueryAction();
-       // System.err.println(queryAction.queryByObjectid(11));
+        String str = "[120.6455472595984,31.42698205477808]";
+      /*  JSONArray coordinates1 = (JSONArray);
+        System.out.println(coordinates1.toJSONString());
+        double x = 0.0;
+        double y = 0.0;
+        for (int i = 0 ;i < coordinates1.size();i++ ) {
+            JSONArray parse3 = (JSONArray) JSONObject.parse(coordinates1.get(i).toString());
+            Double x1 = Double.valueOf(parse3.get(0).toString());
+            Double y1 = Double.valueOf(parse3.get(1).toString());
+            x = x + x1;
+            y = y + y1;
+        }
+        System.out.println(x);
+        System.out.println(y);*/
     }
 
 }

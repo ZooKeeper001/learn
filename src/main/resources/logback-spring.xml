@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property name="LOG_HOME" value="/home/appLog/chros-xiangcheng"/>
+    <property name="APP_NAME" value="chros-xiangcheng"></property>
+    <property name="PATTERN" value="[%d{yyyy-MM-dd HH:mm:ss.SSS}] %-5level %thread [%logger{30}.%method:%line] - %msg%n"></property>
+
+    <logger name="org.springframework" level="INFO" additivity="true"></logger>
+    <logger name="org.hibernate" level="INFO" additivity="true"></logger>
+
+    <!-- 输出到控制台 -->
+    <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>${PATTERN}</pattern>
+        </layout>
+    </appender>
+
+    <!-- 输出到日志文件 -->
+    <appender name="appLogAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/${APP_NAME}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/${APP_NAME}-%d{yyyy-MM-dd}-%i.log</fileNamePattern>
+            <MaxHistory>30</MaxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>${PATTERN}</pattern>
+        </layout>
+    </appender>
+
+    <logger name="io.swagger.models.parameters.AbstractSerializableParameter" additivity="false"></logger>
+
+    <!-- 开发环境 -->
+    <springProfile name="dev">
+        <logger name="org.chros.luoshe.repository" level="DEBUG" additivity="true"></logger>
+        <!-- 输出到logStash -->
+<!--        <appender name="logStash" class="net.logstash.logback.appender.LogstashTcpSocketAppender">-->
+<!--            <destination>127.0.0.1:4563</destination>-->
+<!--            <encoder charset="UTF-8" class="net.logstash.logback.encoder.LogstashEncoder"/>-->
+<!--        </appender>-->
+        <root level="info">
+            <appender-ref ref="stdout"/>
+            <appender-ref ref="appLogAppender"/>
+        </root>
+    </springProfile>
+
+    <!-- 生产环境 -->
+    <springProfile name="prd">
+        <root level="info">
+            <appender-ref ref="appLogAppender"/>
+        </root>
+    </springProfile>
+</configuration>

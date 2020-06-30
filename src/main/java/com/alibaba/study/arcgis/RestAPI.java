@@ -18,6 +18,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
+import reactor.core.publisher.Flux;
 
 import java.io.BufferedReader;
 import java.util.*;
@@ -55,7 +56,7 @@ public class RestAPI {
              CloseableHttpClient httpclient = HttpClientBuilder.create().setDefaultRequestConfig(ArcGisConstants.REQUEST_CONFIG).build();
              // 创建POST请求
             // 水体
-            HttpPost httpPost = new HttpPost("http://183.129.170.180:6080/arcgis/rest/services/xiangcheng/xiangcheng_201912_water/MapServer" + ArcGisConstants.BOX_QUERY_FEATURES);
+            HttpPost httpPost = new HttpPost("http://180.117.162.11:6080/arcgis/rest/services/xiangcheng/xiangcheng_shuixi/MapServer" + ArcGisConstants.BOX_QUERY_FEATURES);
              // 黑臭
              //HttpPost httpPost = new HttpPost("http://183.129.170.180:6080/arcgis/rest/services/xiangcheng/xiangcheng_20191101_heichouwater/MapServer" + ArcGisConstants.BOX_QUERY_FEATURES);
              // 蓝藻
@@ -76,34 +77,28 @@ public class RestAPI {
              httpPost.setEntity(entity);
              // 发送请求
              HttpResponse response = httpclient.execute(httpPost);
-             // 处理结果集
-             Map<String, Object> oldFeature = new HashMap<>();
+
              if (response.getStatusLine().getStatusCode() == 200) {
                    // 调用EntityUtils.toString方法最后会自动把inputStream close掉的
                    String result = EntityUtils.toString(response.getEntity());
                  JSONObject parse = (JSONObject)JSONObject.parse(result);
                  Object features = parse.get("features");
-
                  JSONArray jsonArray = (JSONArray)JSONObject.parse(features.toString());
+                 System.out.println(jsonArray.size());
                  jsonArray.forEach(t -> {
                              JSONObject parse1 = (JSONObject)JSONObject.parse(t.toString());
-                             Object geometry = parse1.get("geometry");
-                             JSONObject parse2 = (JSONObject)JSONObject.parse(geometry.toString());
-                             JSONArray rings = (JSONArray)parse2.get("rings");
-                             JSONArray o = (JSONArray)rings.get(0);
+                             Object attributes = parse1.get("attributes");
+                             JSONObject parse2 = (JSONObject)JSONObject.parse(attributes.toString());
 
-                     double x = 0.0;
-                     double y = 0.0;
-                     String[] arr = new String[2];
-                     for (int i = 0 ;i < o.size();i++ ) {
-                         JSONArray parse3 = (JSONArray)JSONObject.parse(o.get(i).toString());
-                         Double x1 = Double.valueOf(parse3.get(0).toString());
-                         Double y1 = Double.valueOf(parse3.get(1).toString());
-                         x = x + x1;
-                         y = y + y1;
-                     }
-                     arr[0] = String.valueOf(x/o.size());
-                     arr[1] = String.valueOf(y/o.size());
+                             String type = (String) parse2.get("LX");
+                             Double area = Double.parseDouble(parse2.get("STMJ").toString());
+                     Double aDouble = Double.valueOf(String.format("%.2f", area));
+                     System.out.println(type + ":::::" +aDouble);
+                             Object geometry = parse1.get("geometry");
+                             /*JSONObject parse3 = (JSONObject)JSONObject.parse(geometry.toString());
+                             JSONArray rings = (JSONArray)parse3.get("rings");
+                             JSONArray o = (JSONArray)rings.get(0);*/
+
                          }
 
 
@@ -111,51 +106,23 @@ public class RestAPI {
              }
              // 释放资源
              httpclient.close();
-             //return oldFeature;
            }
 
     public static void main(String[] args) throws Exception {
+       // query();
+     /*   String str = "[[[120.66923377002252,31.484764414446204],[120.66917666307256,31.484673994809043],[120.66849137877421,31.48478345039598],[120.66834385218704,31.484854834083364],[120.66834385218704,31.484902423508117],[120.66843427182425,31.484921459457837],[120.66886733316096,31.484831039820676],[120.66923377002252,31.484764414446204]]]";
+        JSONArray picArray = JSONArray.parseArray(str);
+        JSONArray o = (JSONArray)picArray.get(0);
+        System.out.println(o.toJSONString());
+        JSONArray o1 = (JSONArray)o.get(0);
+        System.out.println(o1.get(0).toString());
+        o.forEach(
+                t -> System.out.println(t.toString())
+        );*/
 
-        List<NameValuePair> formparams = new ArrayList<NameValuePair>();
-        formparams.add(new BasicNameValuePair("f", "json"));
-
-        String response = RestAPI.rest("http://183.129.170.180:6080/arcgis/rest/services/shaoxing/shaoxing_2018/MapServer", formparams);
-        JSONObject jsonObject = JSONObject.parseObject(response);
-
-      /*  Map map = new HashMap();
-        Set<String> set = jsonObject.keySet();
-        for (String str : set) {
-            System.out.println(str);
-        }*/
-   /*     for (Iterator iter = jsonObject.keySet(); iter.hasNext();) {
-            String key = (String) iter.next();
-            map.put(key, jsonObject.get(key));
-        }
-        System.out.println("feature:" + map.get("feature"));
-        ObjectMapper objectMapper = new ObjectMapper();
-        String str = map.get("feature").toString();
-        JSONObject jsonObject1 = JSONObject.fromObject(str);
-        Map map1 = new HashMap();
-        String[] strings = new String[2];
-        int i = 0;
-        for (Iterator iter = jsonObject1.keys(); iter.hasNext();) {
-            // System.out.println(iter);
-            String key = (String) iter.next();
-            map.put(key, jsonObject1.get(key));
-            // System.err.println(jsonObject1.get(key));
-            strings[i] = jsonObject1.get(key).toString();
-            i++;
-        }
-        JSONObject obj = new JSONObject().fromObject(strings[0]);
-        // System.err.println("OBJECTID:" + obj.get("OBJECTID"));
-        Attributes attributes = (Attributes) JSONObject.toBean(obj,
-                Attributes.class);
-        obj = new JSONObject().fromObject(strings[1]);
-        Geometry geometry = (Geometry) JSONObject.toBean(obj, Geometry.class);
-        heavyMetal.setAttributes(attributes);
-        heavyMetal.setGeometry(geometry);
-        return heavyMetal;*/
-        query();
+        JSONArray parse3 = (JSONArray)JSONObject.parse("[120.66923377002252,31.484764414446204]");
+        System.out.println(parse3.get(0));
+        System.out.println(parse3.get(1));
     }
 
 }
